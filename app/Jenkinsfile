@@ -1,0 +1,53 @@
+pipeline {
+    agent any
+
+    environment {
+        // Define your Docker registry credentials
+        DOCKER_REGISTRY_CREDENTIALS = credentials('docker-registry-credentials-id')
+        // Define the Docker image name
+        DOCKER_IMAGE_NAME = "your-docker-registry/your-docker-image"
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    // Build Docker image using docker-compose
+                    sh "docker-compose build"
+                }
+            }
+        }
+
+        stage('Push') {
+            steps {
+                script {
+                    // Log in to Docker registry
+                    withCredentials([usernamePassword(credentialsId: DOCKER_REGISTRY_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh "docker login -u $DOCKER_USER -p $DOCKER_PASSWORD $DOCKER_REGISTRY"
+                    }
+
+                    // Push Docker image to registry
+                    sh "docker-compose push"
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    // Deploy using docker-compose
+                    sh "docker-compose up -d"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline succeeded! Clean up if necessary.'
+        }
+        failure {
+            echo 'Pipeline failed! Clean up if necessary.'
+        }
+    }
+}

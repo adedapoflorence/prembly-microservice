@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Specify the Jenkins job URL
+JENKINS_JOB_URL="http://jenkins-server/job/your-job-name/build"
+
+while read oldrev newrev refname
+do
+  # Check if the push is to the specific branch you're interested in
+  if [ "$refname" == "refs/heads/dev" ]; then
+    # Trigger Jenkins job using cURL
+    curl -X POST $JENKINS_JOB_URL
+    echo "Jenkins job triggered for branch: $refname"
+  fi
+done
